@@ -6,17 +6,22 @@ on:
 
 jobs:
   build:
-  runs-on: macos-latest
-  steps:
-    - name: 检出代码
-      uses: actions/checkout@v4
+    runs-on: macos-14
+    steps:
+      - name: 检出源码
+        uses: actions/checkout@v4
 
-    - name: 编译 arm64 架构动态库
-      run: |
-        xcrun -sdk iphoneos clang -arch arm64 -shared -framework Foundation -o FixSiriCrash.dylib FixSiriCrash.m
+      - name: 检查源文件是否存在
+        run: |
+          ls -la
+          test -f FixSiriCrash.m || (echo "错误：根目录下未找到 FixSiriCrash.m 文件，请先上传源码！" && exit 1)
 
-    - name: 打包上传
-      uses: actions/upload-artifact@v4
-      with:
-        name: FixSiriCrash-Dylib
-        path: FixSiriCrash.dylib
+      - name: 编译 arm64 动态库
+        run: |
+          xcrun -sdk iphoneos clang -arch arm64 -dynamiclib -framework Foundation -o FixSiriCrash.dylib FixSiriCrash.m
+
+      - name: 打包上传产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: FixSiriCrash-Dylib
+          path: FixSiriCrash.dylib
